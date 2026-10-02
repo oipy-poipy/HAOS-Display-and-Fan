@@ -3,10 +3,11 @@ set -euo pipefail
 
 export OPTIONS_PATH="${OPTIONS_PATH:-/data/options.json}"
 
-if [ -f /usr/lib/bashio/bashio ]; then
-  # Home Assistant base images provide bashio as a sourced library.
+# bashio.sh is the sourceable library; /usr/lib/bashio/bashio is the
+# `#!/usr/bin/env bashio` shebang wrapper and refuses to be sourced bare.
+if [ -f /usr/lib/bashio/bashio.sh ]; then
   # shellcheck source=/dev/null
-  source /usr/lib/bashio/bashio
+  source /usr/lib/bashio/bashio.sh
 fi
 
 log_info() {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Fix startup crash by sourcing `/usr/lib/bashio/bashio.sh` instead of the
+  `/usr/lib/bashio/bashio` shebang wrapper, which aborts when sourced without a
+  script argument.
+
 ## 0.1.1
 
 - Fix add-on startup by sourcing bashio before using bashio logging and service helpers.

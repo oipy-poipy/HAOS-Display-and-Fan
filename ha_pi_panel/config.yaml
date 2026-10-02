@@ -1,7 +1,7 @@
 name: HA Pi Panel
 slug: ha_pi_panel
 description: OLED status display and fan controller for Home Assistant OS on Raspberry Pi.
-version: 0.1.1
+version: 0.1.2
 url: https://github.com/local/ha-pi-panel
 arch:
   - aarch64
