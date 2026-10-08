@@ -5,11 +5,11 @@ LABEL \
   io.hass.description="OLED status display and fan controller for Home Assistant OS on Raspberry Pi." \
   io.hass.arch="aarch64" \
   io.hass.type="addon" \
-  io.hass.version="0.1.2"
+  io.hass.version="0.2.0"
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    APP_VERSION=0.1.2
+    APP_VERSION=0.2.0
 
 RUN apk add --no-cache \
       bash \

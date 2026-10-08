@@ -61,22 +61,66 @@ Use display_type to match the module:
 
 Set display_width and display_height to the actual panel size. The renderer automatically limits lines on 128x32 panels.
 
+### Page Layout
+
+Each page is a list of lines, rendered top to bottom. Two layout markers shape a line:
+
+- A leading `#` turns the line into an inverted header bar.
+- A tab (`\t` in JSON) splits the line into a left label and a right aligned value.
+
+A 128x64 panel fits five lines, a 128x32 panel fits three. Longer text is truncated with an ellipsis, so prefer short labels.
+
+### Tokens
+
+System tokens: `{hostname}`, `{ip}`, `{time}` (HH:MM:SS), `{clock}` (HH:MM), `{date}`, `{uptime}`, `{uptime_short}`, `{cpu_temp_c}`, `{cpu_load_1m}`, `{mem_percent}`, `{disk_percent}`, `{fan_percent}`, `{fan_mode}`, `{display_status}`.
+
+`{hostname}` and `{ip}` describe the Home Assistant host, not the add-on container. They come from the Supervisor, which is why the add-on requests `hassio_api`. Without it the IP would be the container address on the Supervisor bridge network, usually something in `172.30.32.0/23`.
+
+### Home Assistant Entity Tokens
+
+The full form is `{ha:<entity_id>[@<attribute>][,<fallback>...][|<format>]}`.
+
+- `{ha:sensor.outdoor_temperature}` renders the state.
+- `{ha:weather.forecast_home@temperature}` renders an attribute instead of the state.
+- `{ha:sensor.outdoor_temperature,weather.forecast_home@temperature}` tries each reference in order and uses the first one that has a usable value. This is useful when you are not sure which entity exists.
+- `{ha:...|1}` rounds a numeric value to one decimal. `{ha:...|1°C}` also appends a suffix, and the suffix is dropped when no reference resolves.
+- Weather states such as `partlycloudy` are rendered as readable labels such as `Part cloud`.
+
+Unavailable entities render as `--`. A missing entity id is logged once as a warning, so the add-on log tells you whether the id is wrong or the value is simply unavailable. Entity ids are case sensitive and are listed under Developer Tools, States.
+
 Example page JSON:
 
     [
       {
         "name": "System",
-        "lines": ["HA Pi Panel", "IP: {ip}", "CPU: {cpu_temp_c}C", "RAM: {mem_percent}%"]
+        "lines": [
+          "#{hostname}\t{clock}",
+          "CPU\t{cpu_temp_c}°C",
+          "RAM\t{mem_percent}%",
+          "Disk\t{disk_percent}%",
+          "Fan\t{fan_percent}% {fan_mode}"
+        ]
+      },
+      {
+        "name": "Network",
+        "lines": [
+          "#Network\t{clock}",
+          "IP\t{ip}",
+          "Up\t{uptime_short}",
+          "Load\t{cpu_load_1m}"
+        ]
       },
       {
         "name": "Home",
-        "lines": ["Outside {ha:sensor.outdoor_temperature}", "Weather {ha:weather.home}", "DNS {ha:sensor.pihole_ads_blocked_today}", "{time}"]
+        "lines": [
+          "#Home\t{clock}",
+          "Out\t{ha:sensor.outdoor_temperature,weather.forecast_home@temperature,weather.home@temperature|1°C}",
+          "Sky\t{ha:weather.forecast_home,weather.home}",
+          "Hum\t{ha:sensor.outdoor_humidity,weather.forecast_home@humidity|0%}",
+          "Wind\t{ha:weather.forecast_home@wind_speed,weather.home@wind_speed|0 km/h}"
+        ]
       }
     ]
-
-Supported tokens include {hostname}, {ip}, {time}, {date}, {uptime}, {cpu_temp_c}, {cpu_load_1m}, {mem_percent}, {disk_percent}, {fan_percent}, {fan_mode}, {display_status}, and {ha:entity_id}.
-
-Unavailable Home Assistant entities render as --.
 
 ## Fan Configuration
 
@@ -144,5 +188,9 @@ GPIO chip missing: Confirm /dev/gpiochip0 exists on the host and is listed in th
 Fan always on: Check fan_active_high, wiring, transistor orientation, and whether fan_shutdown_behavior left the control line active after a stop.
 
 Fan never turns on: Check that the fan has 5V/GND power, the GPIO is only used as control, the selected BCM line is correct, and the fan mode or curve asks for a nonzero percentage.
+
+IP shows 172.30.x.x or --: That address belongs to the add-on container. The add-on reads the host address from the Supervisor, so the add-on needs `hassio_api` (set in config.yaml) and a reinstall or restart after updating. A `--` means the Supervisor call failed; run the add-on log at debug level to see why.
+
+Entity token shows --: Check the add-on log. A warning naming the entity means the id does not exist, so verify it under Developer Tools, States. No warning means the entity exists but reports unknown or unavailable, or the attribute name is wrong. Weather integrations commonly use `weather.forecast_home` rather than `weather.home`, and often expose the temperature as an attribute rather than as a state.
 
 MQTT entities not appearing: Confirm the MQTT add-on is installed and running, MQTT service discovery is available to this add-on, mqtt_enabled is true, and Home Assistant MQTT integration has discovery enabled.

@@ -79,6 +79,9 @@ def main() -> int:
     last_ha_warm_at = 0.0
     page_index = 0
     metrics = collect_metrics()
+    logger.info("Host %s reachable at %s", metrics.hostname, metrics.ip)
+    if ha_entities:
+        logger.info("Display pages reference Home Assistant entities: %s", ", ".join(sorted(ha_entities)))
 
     def request_stop(signum: int, frame: Any) -> None:
         state.stop = True

@@ -7,8 +7,35 @@ from typing import Any, Iterable
 
 
 DEFAULT_PAGES = [
-    {"name": "System", "lines": ["HA Pi Panel", "IP: {ip}", "CPU: {cpu_temp_c}C", "RAM: {mem_percent}%"]},
-    {"name": "Home", "lines": ["Outside {ha:sensor.outdoor_temperature}", "Weather {ha:weather.home}", "{time}"]},
+    {
+        "name": "System",
+        "lines": [
+            "#{hostname}\t{clock}",
+            "CPU\t{cpu_temp_c}°C",
+            "RAM\t{mem_percent}%",
+            "Disk\t{disk_percent}%",
+            "Fan\t{fan_percent}% {fan_mode}",
+        ],
+    },
+    {
+        "name": "Network",
+        "lines": [
+            "#Network\t{clock}",
+            "IP\t{ip}",
+            "Up\t{uptime_short}",
+            "Load\t{cpu_load_1m}",
+        ],
+    },
+    {
+        "name": "Home",
+        "lines": [
+            "#Home\t{clock}",
+            "Out\t{ha:sensor.outdoor_temperature,weather.forecast_home@temperature,weather.home@temperature|1°C}",
+            "Sky\t{ha:weather.forecast_home,weather.home}",
+            "Hum\t{ha:sensor.outdoor_humidity,weather.forecast_home@humidity|0%}",
+            "Wind\t{ha:weather.forecast_home@wind_speed,weather.home@wind_speed|0 km/h}",
+        ],
+    },
 ]
 
 DEFAULT_CURVE = [
